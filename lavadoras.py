@@ -1,4 +1,5 @@
 import difflib
+import sys
 import urllib.parse
 import streamlit as st
 
@@ -116,10 +117,6 @@ def detectar_marca(modelo):
 
 
 def generar_enlaces_busqueda(modelo, error_falla):
-    """Genera enlaces de búsqueda optimizados para encontrar manuales técnicos
-
-    y soluciones en foros de reparación sin saturar el servidor.
-    """
     consulta_manual = f"{modelo} service manual filetype:pdf"
     consulta_error = f"{modelo} error {error_falla} repair"
 
@@ -192,7 +189,7 @@ if modelo_ingresado:
     falla_detectada_nombre = ""
     termino_busqueda_internet = ""
 
-    # Evaluación de Entrada
+    # Evaluation of Entrance
     if error_seleccionado != "-- Seleccione un código de error --":
         clave_real = error_seleccionado.lower()
         ruta_a_mostrar = errores_marca.get(clave_real)
@@ -234,11 +231,16 @@ if modelo_ingresado:
             "⚠️ **SEGURIDAD:** Corte la corriente y el agua antes de manipular componentes."
         )
 
-        # Módulo de soporte extra en internet (Incluso si hay datos locales)
         st.write("---")
         st.write("🌐 **¿Necesitas más información técnica de este modelo?**")
         url_manual, url_error = generar_enlaces_busqueda(
             modelo_final, termino_busqueda_internet
         )
+
         col1, col2 = st.columns(2)
-        with col1:
+        col1.link_button("📘 Buscar Manual PDF", url_manual, use_container_width=True)
+        col2.link_button(
+            "🔍 Soluciones en Internet", url_error, use_container_width=True
+        )
+
+    elif falla_escrita or (
