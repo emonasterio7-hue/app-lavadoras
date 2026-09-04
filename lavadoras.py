@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # =========================================================================
-# 1. BASE DE DATOS INTEGRADA: MODELOS Y ERRORES DE FÁBRICA (2020-2026)
+# 1. BASE DE DATOS INTEGRADA: MODELOS Y ERRORES DE FÁBRICA (MECÁNICOS Y ELÉCTRICOS)
 # =========================================================================
 if "modelos" not in st.session_state:
     st.session_state["modelos"] = [
@@ -34,31 +34,45 @@ if "modelos" not in st.session_state:
 if "errores" not in st.session_state:
     st.session_state["errores"] = {
         "LG": {
+            "no enciende / no prende / pantalla muerta": [
+                "SÍNTOMA: El equipo no da señales de vida ni luces al presionar el botón de encendido.",
+                "PASO 1: Medir voltaje en el tomacorriente de la pared con el multímetro (Debe estar entre 110V y 125V AC).",
+                "PASO 2: Inspeccionar el cable de alimentación y el filtro de ruido (Line Filter) buscando rastros de cortocircuito o cables abiertos.",
+                "PASO 3: Desmontar el panel de control y verificar con continuidad si el fusible principal de la tarjeta está quemado.",
+                "PASO 4: Si el fusible está abierto, revisar si la bomba de drenaje o el motor están a tierra antes de cambiarlo.",
+                "PASO 5: Si llega energía a la placa principal pero la interfaz sigue muerta, el regulador de voltaje de la fuente falló. Reemplazar tarjeta.",
+            ],
             "oe": [
-                "SÍNTOMA: La lavadora no desagua o no tira el agua.",
+                "SÍNTOMA: La lavadora no desagua, no drena o no tira el agua.",
                 "PASO 1: Limpiar el filtro de la bomba de drenaje en la esquina inferior frontal izquierda.",
                 "PASO 2: Verificar que la manguera de desagüe trasera no esté obstruida, doblada o bloqueada.",
                 "PASO 3: Medir con multímetro si llegan 120V a la bomba. Si llega voltaje y no drena, reemplazar bomba.",
             ],
             "ie": [
-                "SÍNTOMA: No entra agua o llena muy lento.",
+                "SÍNTOMA: No entra agua, llena muy lento o marca falta de presión.",
                 "PASO 1: Cerrar llaves de paso y limpiar los filtros de malla de las electroválvulas traseras.",
                 "PASO 2: Comprobar la continuidad de las bobinas de las electroválvulas con el multímetro.",
                 "PASO 3: Verificar que la presión del agua del hogar sea adecuada (mínimo 20 PSI).",
             ],
             "le": [
-                "SÍNTOMA: El motor no gira o da error de sobrecarga.",
+                "SÍNTOMA: El motor Direct Drive no gira, se sacude bruscamente o da error de sobrecarga.",
                 "PASO 1: Desconectar por 10 minutos para reiniciar el módulo inverter de la tarjeta.",
                 "PASO 2: Retirar la tapa trasera y girar la tina a mano para descartar ropa atorada entre las tinas.",
                 "PASO 3: Revisar el arnés eléctrico y medir la resistencia del Sensor Hall en el estator (debe dar entre 5k y 15k ohms).",
             ],
             "ue": [
-                "SÍNTOMA: Vibra mucho o la carga está desbalanceada.",
-                "PASO 1: Abrir la puerta y redistribuir la carga de ropa pesada (cobijas o jeans).",
+                "SÍNTOMA: Vibra mucho, golpea los lados o la carga está desbalanceada en el centrifugado.",
+                "PASO 1: Abrir la puerta y redistribuir la carga de ropa pesada (cobijas o jeans) que se haya amontonado.",
                 "PASO 2: Comprobar con un nivel de burbuja que las patas de la lavadora estén perfectamente firmes.",
             ],
         },
         "SAMSUNG": {
+            "no enciende / no prende / muerta": [
+                "SÍNTOMA: No prende ninguna luz ni responde al botón de Power.",
+                "PASO 1: Validar voltaje AC en el enchufe de la pared (110V-125V).",
+                "PASO 2: Revisar fusibles térmicos en el cableado interno y el fusible de la tarjeta de potencia (IPM).",
+                "PASO 3: Revisar capacitores de la fuente conmutada; si están inflados, requieren reemplazo.",
+            ],
             "4c": [
                 "SÍNTOMA: No entra agua o llena muy lento.",
                 "PASO 1: Revisar que las llaves de agua estén completamente abiertas.",
@@ -71,6 +85,12 @@ if "errores" not in st.session_state:
             ],
         },
         "SPEED QUEEN": {
+            "no enciende / no prende": [
+                "SÍNTOMA: Lavadora comercial o residencial de uso rudo totalmente muerta.",
+                "PASO 1: Verificar el disyuntor de la casa (breaker) y el interruptor principal trasero si lo incluye.",
+                "PASO 2: Comprobar el cableado hacia el temporizador mecánico o tarjeta electrónica.",
+                "PASO 3: Verificar continuidad en el fusible de protección de línea interna.",
+            ],
             "dl": [
                 "SÍNTOMA: Falla de puerta, seguro de tapa o no exprime.",
                 "PASO 1: Verificar si la tapa está cerrando por completo o si hay ropa obstruyendo el pestillo.",
@@ -84,13 +104,20 @@ if "errores" not in st.session_state:
             ],
         },
         "WHIRLPOOL": {
+            "no enciende / no prende": [
+                "SÍNTOMA: Pantalla muerta o no responde a los botones del panel.",
+                "PASO 1: Validar el suministro eléctrico general.",
+                "PASO 2: Desmontar consola y chequear fusible de herradura en la entrada de la placa electrónica.",
+                "PASO 3: Probar transformador de la placa buscando lecturas abiertas.",
+            ],
             "f5e2": [
                 "SÍNTOMA: Error de seguro de tapa o interruptor bloqueado.",
                 "PASO 1: Revisar si el actuador del blocapuertas superior está roto o bloqueado.",
                 "PASO 2: Comprobar el solenoide del pestillo con multímetro o cambiar Lid Lock.",
-            ]
+            ],
         },
     }
+}
 
 modelos_lista = st.session_state["modelos"]
 errores_marcas = st.session_state["errores"]
@@ -171,7 +198,7 @@ if modelo_ingresado:
     st.write("### 🔍 Buscador de Fallas")
 
     codigos_lista = ["-- Seleccione un código de error --"] + [
-        c.upper() for c in errores_marca.keys()
+        c.upper() for c in errores_marca.keys() if len(c) <= 5
     ]
     error_seleccionado = st.selectbox(
         "🎛️ Opción A: Por Código de Error de la pantalla:", options=codigos_lista
@@ -179,68 +206,3 @@ if modelo_ingresado:
 
     falla_escrita = (
         st.text_input(
-            "✍️ Opción B: O describa el síntoma con sus palabras (Ej: 'no drena', 'ruido'):"
-        )
-        .strip()
-        .lower()
-    )
-
-    ruta_a_mostrar = None
-    falla_detectada_nombre = ""
-    termino_busqueda_internet = ""
-
-    # Evaluación de entradas
-    if error_seleccionado != "-- Seleccione un código de error --":
-        clave_real = error_seleccionado.lower()
-        ruta_a_mostrar = errores_marca.get(clave_real)
-        falla_detectada_nombre = f"CÓDIGO {error_seleccionado}"
-        termino_busqueda_internet = error_seleccionado
-
-    elif falla_escrita:
-        termino_busqueda_internet = falla_escrita
-        claves_disponibles = list(errores_marca.keys())
-
-        for clave, pasos in errores_marca.items():
-            texto_completo_pasos = " ".join(pasos).lower()
-            if falla_escrita in texto_completo_pasos or falla_escrita in clave:
-                ruta_a_mostrar = pasos
-                falla_detectada_nombre = (
-                    f"SÍNTOMA ASOCIADO AL ERROR '{clave.upper()}'"
-                )
-                break
-
-        if not ruta_a_mostrar:
-            coincidencia_flexible = difflib.get_close_matches(
-                falla_escrita, claves_disponibles, n=1, cutoff=0.2
-            )
-            if coincidencia_flexible:
-                clave_flex = coincidencia_flexible[0]
-                ruta_a_mostrar = errores_marca.get(clave_flex)
-                falla_detectada_nombre = (
-                    f"SÍNTOMA ASOCIADO AL ERROR '{clave_flex.upper()}'"
-                )
-
-    # FASE 3: IMPRESIÓN DE SOLUCIONES
-    if ruta_a_mostrar:
-        st.write("---")
-        st.warning(f"🛠️ **DIAGNÓSTICO AUTOMÁTICO | {falla_detectada_nombre}**")
-        st.write("### 📋 Ruta de Reparación Recomendada:")
-        for paso in ruta_a_mostrar:
-            st.info(paso)
-        st.error(
-            "⚠️ **SEGURIDAD:** Corte la corriente y el agua antes de manipular componentes."
-        )
-
-        st.write("---")
-        st.write("🌐 **¿Necesitas más información técnica de este modelo?**")
-        url_manual, url_error = generar_enlaces_busqueda(
-            modelo_final, termino_busqueda_internet
-        )
-
-        st.link_button(
-            "📘 Buscar Manual PDF en Internet", url_manual, use_container_width=True
-        )
-        st.link_button(
-            "🔍 Soluciones Extras en Foros", url_error, use_container_width=True
-        )
-
