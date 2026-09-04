@@ -117,7 +117,6 @@ if "errores" not in st.session_state:
             ],
         },
     }
-}
 
 modelos_lista = st.session_state["modelos"]
 errores_marcas = st.session_state["errores"]
@@ -175,7 +174,7 @@ if modelo_ingresado:
     )
 
     if coincidencias:
-        modelo_final = coincidencias[0]
+        modelo_final = coincidencias
         st.success(f"✅ Modelo reconocido en el sistema: **{modelo_final}**")
         marca_actual = detectar_marca(modelo_final)
     else:
