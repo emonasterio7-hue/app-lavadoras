@@ -189,7 +189,7 @@ if modelo_ingresado:
     falla_detectada_nombre = ""
     termino_busqueda_internet = ""
 
-    # Evaluation of Entrance
+    # Evaluación de entradas
     if error_seleccionado != "-- Seleccione un código de error --":
         clave_real = error_seleccionado.lower()
         ruta_a_mostrar = errores_marca.get(clave_real)
@@ -220,7 +220,7 @@ if modelo_ingresado:
                     f"SÍNTOMA ASOCIADO AL ERROR '{clave_flex.upper()}'"
                 )
 
-    # FASE 3: IMPRESIÓN DE SOLUCIONES INTERNAS O BÚSQUEDA EN INTERNET
+    # FASE 3: IMPRESIÓN DE SOLUCIONES
     if ruta_a_mostrar:
         st.write("---")
         st.warning(f"🛠️ **DIAGNÓSTICO AUTOMÁTICO | {falla_detectada_nombre}**")
@@ -237,10 +237,10 @@ if modelo_ingresado:
             modelo_final, termino_busqueda_internet
         )
 
-        col1, col2 = st.columns(2)
-        col1.link_button("📘 Buscar Manual PDF", url_manual, use_container_width=True)
-        col2.link_button(
-            "🔍 Soluciones en Internet", url_error, use_container_width=True
+        st.link_button(
+            "📘 Buscar Manual PDF en Internet", url_manual, use_container_width=True
+        )
+        st.link_button(
+            "🔍 Soluciones Extras en Foros", url_error, use_container_width=True
         )
 
-    elif falla_escrita or (
