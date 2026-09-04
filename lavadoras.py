@@ -56,7 +56,7 @@ if "errores" not in st.session_state:
                 "PASO 3: Probar continuidad del solenoide con multímetro. Si está abierto, reemplazar el interruptor."
             ],
             "er (error de sensor de velocidad o motor)": [
-                "PASO 1: Desconectar la lavadora de la corriente durante 2 minutos para reiniciar el módulo de control.",
+                "PASO 1: Desconectar la lavadora de la corriente durante 2 minutes para reiniciar el módulo de control.",
                 "PASO 2: Inclinar el equipo y revisar que la banda de transmisión no esté rota, floja o patinando."
             ]
         },
@@ -68,20 +68,23 @@ if "errores" not in st.session_state:
         }
     }
 
+modelos_lista = st.session_state["modelos"]
+errores_marcas = st.session_state["errores"]
+
 # =========================================================================
 # 2. FUNCIONES DE DETECCIÓN INTELIGENTE
 # =========================================================================
 def detectar_marca(modelo):
-    modelo_up = modelo.upper()
+    modelo_up = str(modelo).upper()
     if "SPEED" in modelo_up or "QUEEN" in modelo_up: return "SPEED QUEEN"
-    if modelo_up.startswith("LG"): return "LG"
-    if modelo_up.startswith("SAMSUNG"): return "SAMSUNG"
-    if modelo_up.startswith("WHIRLPOOL"): return "WHIRLPOOL"
-    if modelo_up.startswith("MAYTAG"): return "MAYTAG"
+    if modelo_up.startswith("LG") or "LG" in modelo_up: return "LG"
+    if modelo_up.startswith("SAMSUNG") or "SAMSUNG" in modelo_up: return "SAMSUNG"
+    if modelo_up.startswith("WHIRLPOOL") or "WHIRLPOOL" in modelo_up: return "WHIRLPOOL"
+    if modelo_up.startswith("MAYTAG") or "MAYTAG" in modelo_up: return "MAYTAG"
     if modelo_up.startswith("GE") or "GENERAL" in modelo_up: return "GE"
     
     palabras = modelo_up.split()
-    return palabras if palabras else "OTRA"
+    return palabras[0] if palabras else "OTRA"
 
 # =========================================================================
 # 3. INTERFAZ GRÁFICA MÓVIL (MENÚS TÁCTILES Y BOTONES)
@@ -95,10 +98,10 @@ modelo_ingresado = st.text_input("👉 Ingrese o busque el modelo de la lavadora
 
 if modelo_ingresado:
     # Buscar coincidencia elástica en la base de datos dinámica
-    coincidencias = difflib.get_close_matches(modelo_ingresado, st.session_state["modelos"], n=1, cutoff=0.35)
+    coincidencias = difflib.get_close_matches(modelo_ingresado, modelos_lista, n=1, cutoff=0.35)
     
     if coincidencias:
-        modelo_final = coincidencias
+        modelo_final = coincidencias[0]  # CORRECCIÓN: Extraemos el texto de la lista
         st.success(f"✅ Modelo reconocido en el sistema: **{modelo_final}**")
         marca_actual = detectar_marca(modelo_final)
     else:
@@ -117,11 +120,11 @@ if modelo_ingresado:
     st.write("---")
 
     # FASE 2: CATÁLOGO DE ERRORES FILTRADO POR MARCA
-    errores_marca = st.session_state["errores"].get(marca_actual, {})
+    errores_marca = errores_marcas.get(marca_actual, {})
     
     if errores_marca:
-        # Limpiar llaves para el menú desplegable de opciones
-        opciones_errores = {k.split(" (").upper(): k for k in errores_marca.keys()}
+        # CORRECCIÓN: Evitamos error quitando el .upper() incorrecto en el diccionario de opciones
+        opciones_errores = {k.split(" (")[0].upper(): k for k in errores_marca.keys()}
         
         error_sel = st.selectbox("👉 Seleccione el código de error:", options=["-- Seleccione el error --"] + list(opciones_errores.keys()))
         
