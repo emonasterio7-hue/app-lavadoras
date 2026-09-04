@@ -3,11 +3,14 @@ import sys
 import urllib.parse
 import streamlit as st
 
+# Configuración de la pantalla del celular (Diseño responsivo móvil)
 st.set_page_config(
     page_title="Asistente de Línea Blanca", page_icon="🧺", layout="centered"
 )
 
-# 1. BASE DE DATOS FIJA Y LIMPIA
+# =========================================================================
+# 1. BASE DE DATOS MAESTRA: MODELOS Y ERRORES DE FÁBRICA
+# =========================================================================
 if "modelos" not in st.session_state:
     st.session_state["modelos"] = [
         "LG WM4000HVA", "LG WM3600HWA", "LG WM3400CW", "LG WT7300CW", "LG WT8400CW",
@@ -28,31 +31,44 @@ if "errores" not in st.session_state:
                 "PASO 4: Si el fusible está abierto, revisar si la bomba de drenaje o el motor están a tierra antes de cambiarlo.",
                 "PASO 5: Si llega energía a la placa principal pero la interfaz sigue muerta, reemplazar tarjeta principal."
             ],
-            "oe": [
+            "oe (no desagua / no drena / bomba)": [
                 "SÍNTOMA: La lavadora no desagua, no drena o no tira el agua.",
                 "PASO 1: Limpiar el filtro de la bomba de drenaje en la esquina inferior frontal izquierda.",
                 "PASO 2: Verificar que la manguera de desagüe trasera no esté obstruida, doblada o bloqueada.",
                 "PASO 3: Medir con multímetro si llegan 120V a la bomba. Si llega voltaje y no drena, reemplazar bomba."
+            ],
+            "ie (no entra agua)": [
+                "SÍNTOMA: No entra agua, llena muy lento o marca falta de presión.",
+                "PASO 1: Cerrar llaves de paso y limpiar los filtros de malla de las electroválvulas traseras.",
+                "PASO 2: Comprobar la continuidad de las bobinas de las electroválvulas con el multímetro.",
+                "PASO 3: Verificar que la presión del agua del hogar sea adecuada (mínimo 20 PSI)."
+            ],
+            "le (motor no gira)": [
+                "SÍNTOMA: El motor Direct Drive no gira, se sacude bruscamente o da error de sobrecarga.",
+                "PASO 1: Desconectar por 10 minutos para reiniciar el módulo inverter de la tarjeta.",
+                "PASO 2: Retirar la tapa trasera y girar la tina a mano para descartar ropa atorada entre las tinas.",
+                "PASO 3: Revisar el arnés eléctrico y medir la resistencia del Sensor Hall en el estator (debe dar entre 5k y 15k ohms)."
             ]
         },
         "SAMSUNG": {
             "no enciende / no prende / muerta": [
                 "SÍNTOMA: No prende ninguna luz ni responde al botón de Power.",
                 "PASO 1: Validar voltaje AC en el enchufe de la pared (110V-125V).",
-                "PASO 2: Revisar fusibles térmicos en el cableado interno y el fusible de la tarjeta de potencia (IPM)."
-            ]
-        },
-        "SPEED QUEEN": {
-            "no enciende / no prende": [
-                "SÍNTOMA: Lavadora comercial o residencial de uso rudo totalmente muerta.",
-                "PASO 1: Verificar el disyuntor de la casa (breaker) y el interruptor principal trasero si lo incluye."
+                "PASO 2: Revisar fusibles térmicos en el cableado interno."
+            ],
+            "4c": [
+                "SÍNTOMA: No entra agua o llena muy lento.",
+                "PASO 1: Limpiar los filtros de malla plástica."
+            ],
+            "5c": [
+                "SÍNTOMA: No desagua o no tira el agua.",
+                "PASO 1: Desmontar la manguera de desagüe trasera."
             ]
         },
         "WHIRLPOOL": {
             "no enciende / no prende": [
                 "SÍNTOMA: Pantalla muerta o no responde a los botones del panel.",
-                "PASO 1: Validar el suministro eléctrico general.",
-                "PASO 2: Desmontar consola y chequear fusible de herradura en la entrada de la placa electrónica."
+                "PASO 1: Validar el suministro eléctrico general."
             ]
         }
     }
@@ -60,6 +76,9 @@ if "errores" not in st.session_state:
 modelos_lista = st.session_state["modelos"]
 errores_marcas = st.session_state["errores"]
 
+# =========================================================================
+# 2. FUNCIONES DE DETECCIÓN INTELIGENTE Y RASTREO EN INTERNET
+# =========================================================================
 def detectar_marca(modelo):
     modelo_up = str(modelo).upper()
     if "SPEED" in modelo_up or "QUEEN" in modelo_up: return "SPEED QUEEN"
@@ -75,7 +94,9 @@ def generar_enlaces_busqueda(modelo, error_falla):
     url_error = "https://google.com" + urllib.parse.quote(consulta_error)
     return url_manual, url_error
 
-# INTERFAZ GRÁFICA
+# =========================================================================
+# 3. INTERFAZ GRÁFICA MÓVIL
+# =========================================================================
 st.title("🧺 Guía Inteligente de Reparación")
 st.subheader("Soporte Técnico Especializado")
 st.write("---")
@@ -84,6 +105,7 @@ modelo_ingresado = st.text_input("👉 Ingrese o busque el modelo de la lavadora
 
 if modelo_ingresado:
     coincidencias = difflib.get_close_matches(modelo_ingresado, modelos_lista, n=1, cutoff=0.3)
+
     if coincidencias:
         modelo_final = coincidencias[0]
         st.success(f"✅ Modelo reconocido en el sistema: **{modelo_final}**")
@@ -105,7 +127,8 @@ if modelo_ingresado:
 
     codigos_lista = ["-- Seleccione un código de error --"] + [c.upper() for c in errores_marca.keys() if len(c) <= 5]
     error_seleccionado = st.selectbox("🎛️ Opción A: Por Código de Error de la pantalla:", options=codigos_lista)
-    falla_escrita = st.text_input("✍️ Opción B: O describa el síntoma con sus palabras (Ej: no drena, no prende):").strip().lower()
+
+    falla_escrita = st.text_input("✍️ Opción B: O describa el síntoma con sus palabras:").strip().lower()
 
     ruta_a_mostrar = None
     falla_detectada_nombre = ""
@@ -116,24 +139,45 @@ if modelo_ingresado:
         ruta_a_mostrar = errores_marca.get(clave_real)
         falla_detectada_nombre = f"CÓDIGO {error_seleccionado}"
         termino_busqueda_internet = error_seleccionado
+
     elif falla_escrita:
         termino_busqueda_internet = falla_escrita
-        for clave in errores_marca.keys():
-            if falla_escrita in clave or any(p in clave for p in falla_escrita.split()):
+        claves_disponibles = list(errores_marca.keys())
+
+        # NUEVA LÓGICA PRECIAS POR PALABRA CLAVE COMPLETA (Busca coincidencias directas en la llave)
+        for clave in claves_disponibles:
+            palabras_clave = clave.replace("/", " ").replace("(", " ").replace(")", " ").split()
+            if any(palabra in palabras_clave for palabra in falla_escrita.split() if len(palabra) > 2):
                 ruta_a_mostrar = errores_marca[clave]
                 falla_detectada_nombre = f"SÍNTOMA ASOCIADO A '{clave.upper()}'"
                 break
 
+        # Búsqueda secundaria si no hizo match en el título
+        if not ruta_a_mostrar:
+            for clave, pasos in errores_marca.items():
+                texto_completo_pasos = " ".join(pasos).lower()
+                if falla_escrita in texto_completo_pasos:
+                    ruta_a_mostrar = pasos
+                    falla_detectada_nombre = f"SÍNTOMA ENCONTRADO EN LA RUTA '{clave.upper()}'"
+                    break
+
     if ruta_a_mostrar:
         st.write("---")
         st.warning(f"🛠️ **DIAGNÓSTICO AUTOMÁTICO | {falla_detectada_nombre}**")
+        st.write("### 📋 Ruta de Reparación Recomendada:")
         for paso in ruta_a_mostrar:
             st.info(paso)
+        st.error("⚠️ **SEGURIDAD:** Corte la corriente y el agua antes de manipular componentes.")
+
+        st.write("---")
+        st.write("🌐 **¿Necesitas más información técnica de este modelo?**")
         url_manual, url_error = generar_enlaces_busqueda(modelo_final, termino_busqueda_internet)
+
         st.link_button("📘 Buscar Manual PDF en Internet", url_manual, use_container_width=True)
         st.link_button("🔍 Soluciones Extras en Foros", url_error, use_container_width=True)
+
     elif falla_escrita or error_seleccionado != "-- Seleccione un código de error --":
         st.write("---")
-        st.error(f"❌ La falla '{termino_busqueda_internet.upper()}' no está en el sistema local.")
+        st.error(f"❌ La falla '{termino_busqueda_internet.upper()}' no está registrada localmente.")
         url_manual, url_error = generar_enlaces_busqueda(modelo_final, termino_busqueda_internet)
         st.link_button(f"📥 Descargar Manual de Servicio para {modelo_final}", url_manual, type="primary", use_container_width=True)
