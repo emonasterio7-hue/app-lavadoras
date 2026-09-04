@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # =========================================================================
-# 1. BASE DE DATOS INTEGRADA: MODELOS Y ERRORES DE FÁBRICA (MECÁNICOS Y ELÉCTRICOS)
+# 1. BASE DE DATOS INTEGRADA: MODELOS Y ERRORES DE FÁBRICA
 # =========================================================================
 if "modelos" not in st.session_state:
     st.session_state["modelos"] = [
@@ -37,10 +37,10 @@ if "errores" not in st.session_state:
             "no enciende / no prende / pantalla muerta": [
                 "SÍNTOMA: El equipo no da señales de vida ni luces al presionar el botón de encendido.",
                 "PASO 1: Medir voltaje en el tomacorriente de la pared con el multímetro (Debe estar entre 110V y 125V AC).",
-                "PASO 2: Inspeccionar el cable de alimentación y el filtro de ruido (Line Filter) buscando rastros de cortocircuito o cables abiertos.",
+                "PASO 2: Inspeccionar el cable de alimentación y el filtro de ruido (Line Filter) buscando rastros de cortocircuito.",
                 "PASO 3: Desmontar el panel de control y verificar con continuidad si el fusible principal de la tarjeta está quemado.",
                 "PASO 4: Si el fusible está abierto, revisar si la bomba de drenaje o el motor están a tierra antes de cambiarlo.",
-                "PASO 5: Si llega energía a la placa principal pero la interfaz sigue muerta, el regulador de voltaje de la fuente falló. Reemplazar tarjeta.",
+                "PASO 5: Si llega energía a la placa principal pero la interfaz sigue muerta, reemplazar tarjeta principal.",
             ],
             "oe": [
                 "SÍNTOMA: La lavadora no desagua, no drena o no tira el agua.",
@@ -117,6 +117,7 @@ if "errores" not in st.session_state:
             ],
         },
     }
+}
 
 modelos_lista = st.session_state["modelos"]
 errores_marcas = st.session_state["errores"]
@@ -164,9 +165,7 @@ st.subheader("Soporte Técnico Especializado")
 st.write("---")
 
 # FASE 1: ENTRADA DEL MODELO
-modelo_ingresado = (
-    st.text_input("👉 Ingrese o busque el modelo de la lavadora:").strip().upper()
-)
+modelo_ingresado = st.text_input("👉 Ingrese o busque el modelo de la lavadora:").strip().upper()
 
 if modelo_ingresado:
     coincidencias = difflib.get_close_matches(
@@ -174,13 +173,11 @@ if modelo_ingresado:
     )
 
     if coincidencias:
-        modelo_final = coincidencias
+        modelo_final = coincidencias[0]
         st.success(f"✅ Modelo reconocido en el sistema: **{modelo_final}**")
         marca_actual = detectar_marca(modelo_final)
     else:
-        st.warning(
-            f"⚠️ El modelo **'{modelo_ingresado}'** no existe en la base de datos."
-        )
+        st.warning(f"⚠️ El modelo **'{modelo_ingresado}'** no existe en la base de datos.")
         if st.button(f"➕ ¿Desea integrar '{modelo_ingresado}' permanentemente?"):
             st.session_state["modelos"].append(modelo_ingresado)
             st.success(f"🎉 ¡Éxito! El modelo '{modelo_ingresado}' ha sido agregado.")
@@ -196,12 +193,12 @@ if modelo_ingresado:
 
     st.write("### 🔍 Buscador de Fallas")
 
-    codigos_lista = ["-- Seleccione un código de error --"] + [
-        c.upper() for c in errores_marca.keys() if len(c) <= 5
-    ]
-    error_seleccionado = st.selectbox(
-        "🎛️ Opción A: Por Código de Error de la pantalla:", options=codigos_lista
-    )
+    codigos_lista = ["-- Seleccione un código de error --"] + [c.upper() for c in errores_marca.keys() if len(c) <= 5]
+    error_seleccionado = st.selectbox("🎛️ Opción A: Por Código de Error de la pantalla:", options=codigos_lista)
 
-    falla_escrita = (
-        st.text_input(
+    falla_escrita = st.text_input("✍️ Opción B: O describa el síntoma con sus palabras (Ej: no drena, no prende, ruido):").strip().lower()
+
+    ruta_a_mostrar = None
+    falla_detectada_nombre = ""
+    termino_busqueda_internet = ""
+
