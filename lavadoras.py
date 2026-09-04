@@ -35,7 +35,7 @@ if "errores" not in st.session_state:
                 "SÍNTOMA: La lavadora no desagua, no drena o no tira el agua.",
                 "PASO 1: Limpiar el filtro de la bomba de drenaje en la esquina inferior frontal izquierda.",
                 "PASO 2: Verificar que la manguera de desagüe trasera no esté obstruida, doblada o bloqueada.",
-                "PASO 3: Medir con multímetro si llegan 120V a la bomba. Si llega voltaje y no drena, reemplazar bomba."
+                "PASO 3: Medir con multímetro si llegan 120V a la bomba. Si llega voltaje and no drena, reemplazar bomba."
             ],
             "ie / no entra agua / llena lento / electrovalvula": [
                 "SÍNTOMA: No entra agua, llena muy lento o marca falta de presión.",
@@ -128,11 +128,8 @@ if "errores" not in st.session_state:
         }
     }
 
-modelos_lista = st.session_state["modelos"]
-errores_marcas = st.session_state["errores"]
-
 # =========================================================================
-# 2. CORE LOGIC: PROCESADOR ELÁSTICO AVANZADO POR RAÍZ DE PALABRAS
+# 2. FUNCIONES DE DETECCIÓN INTELIGENTE Y RASTREO EN INTERNET
 # =========================================================================
 def detectar_marca(modelo):
     modelo_up = str(modelo).upper()
@@ -150,9 +147,11 @@ def generar_enlaces_busqueda(modelo, error_falla):
     return url_manual, url_error
 
 # =========================================================================
-# 3. INTERFAZ GRÁFICA MÓVIL
+# 3. INTERFAZ GRÁFICA MÓVIL (CORREGIDA ASIGNACIÓN SECUENCIAL)
 # =========================================================================
 st.title("🧺 Guía Inteligente de Reparación")
 st.subheader("Soporte Técnico Especializado (2020-2026)")
 st.write("---")
 
+# Las variables se asignan aquí abajo, justo después de estar seguros de que session_state existe
+modelos_lista = st.session_state["modelos"]
