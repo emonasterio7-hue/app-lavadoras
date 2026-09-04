@@ -117,7 +117,6 @@ if "errores" not in st.session_state:
             ],
         },
     }
-}
 
 modelos_lista = st.session_state["modelos"]
 errores_marcas = st.session_state["errores"]
@@ -202,3 +201,4 @@ if modelo_ingresado:
     falla_detectada_nombre = ""
     termino_busqueda_internet = ""
 
+    # Evaluación de entradas
